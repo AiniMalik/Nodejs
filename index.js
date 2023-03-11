@@ -145,4 +145,4 @@ app.delete("/study-groups/:id", async (req, res) => {
   let group = await StudyGroup.deleteOne({_id: req.params.id});
   res.send({result:"deleted"});
 });
-app.listen(5000)
+// app.listen(5000)
