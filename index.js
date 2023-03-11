@@ -45,20 +45,73 @@ app.post("/login", async (req, res) => {
 });
 
 app.get("/students", async (req, res) => {
-   let data = await Student.find();
-    console.log(data)
+   const page = req.query.page || 0;
+  const stPerPage = req.query.pageSize;
+   skips = stPerPage * (page - 1);
+  let data = await Student.find().skip(skips).limit(stPerPage);
+  // let Data = data.skip(page * stPerPage)
+  // let resp = Data.limit(stPerPage)
+  let count = data.length
+  console.log(data)
+  res.json({
+    data,
+    count
+  });
+});
+app.get("/search-students-id/:key", async (req, res) => {
+  let newData = await Student.findOne({
+      _id: req.params.key   
+  });
+    res.send(newData);
+});
+
+app.get("/search-students-name/:key", async (req, res) => {
+  let data = await Student.find({
+    "$or": [
+      {
+        "name": { $regex: req.params.key },
+      },
+    ],
+  });
+  if (data.length > 0) {
     res.send(data);
+  } else {
+    res.send([
+      {
+        name: "",
+        gender: "",
+        date_of_birth: "",
+        place_of_birth: "",
+        email: "",
+        study_group: "",
+      },
+    ]);
+  }
 });
 
 app.get("/search-students/:key", async (req, res) => {
     let data = await Student.find(
         {
             "$or": [
-                {"study_group":{$regex:req.params.key}}
+            {
+                "study_group": { $regex: req.params.key },
+            },
+                  
             ]
         }
-    )
+  )
+  if (data.length > 0) {
     res.send(data);
+  } else {
+    res.send([{
+      name: "",
+      gender: "",
+      date_of_birth: "",
+      place_of_birth: "",
+      email: "",
+      study_group: "",
+    }]);
+  }
 });
 
 app.put("/students-update/:id", async (req, res) => {
@@ -74,6 +127,7 @@ app.delete('/students-delete/:id', async (req, res) => {
 });
 
 app.post("/students", async (req, res) => {
+ 
     let student = new Student(req.body);
     let result = await student.save();
     res.send(result);
